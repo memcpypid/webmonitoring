@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="assets/style.css"> <!-- Link ke file style.css -->
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/modul4/frontend/home.php" class="brand">Smart Data Logger</a>
+      <ul class="nav-links">
+        <li><a href="/modul4/frontend/home.php" class="nav-link home-link">Home</a></li>
+        <!-- <li><a href="/history" class="nav-link history-link">History</a></li> -->
+        <li>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="text-center mb-6">
+      <h2 class="title">Data Monitoring Realtime</h2>
+    </div>
+
+    <!-- Form untuk Menambah Data -->
+    <div class="form-container mb-6">
+      <h3 class="text-center">Tambah Data Sensor</h3>
+      <form id="addSensorForm">
+        <input type="text" id="sensorX" placeholder="Sensor X" required>
+        <input type="text" id="sensorY" placeholder="Sensor Y" required>
+        <input type="text" id="sensorZ" placeholder="Sensor Z" required>
+        <input type="text" id="infoXYZ" placeholder="Info XYZ" required>
+        <input type="text" id="cahaya" placeholder="Cahaya" required>
+        <input type="text" id="infoCahaya" placeholder="Info Cahaya" required>
+        <button type="submit" class="btn">Tambah Data</button>
+      </form>
+    </div>
+
+    <!-- Tabel untuk Data -->
+    <div class="table-container overflow-x-auto mb-6">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID Sensor</th>
+            <th>Sensor X</th>
+            <th>Sensor Y</th>
+            <th>Sensor Z</th>
+            <th>Info XYZ</th>
+            <th>Cahaya</th>
+            <th>Info Cahaya</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="10" class="text-center py-4">No data available for today.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2024 Lorem Ipsum Company. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Fungsi untuk fetch data
+    async function fetchData() {
+      try {
+        const response = await fetch('http://localhost:3000/api/sensor');
+        const data = await response.json();
+
+        if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
+          const tableBody = document.getElementById('tableBody');
+          tableBody.innerHTML = ''; // Clear existing rows
+
+          data.data.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${row.id_sensor}</td>
+              <td>${row.sensor_X}</td>
+              <td>${row.sensor_Y}</td>
+              <td>${row.sensor_Z}</td>
+              <td>${row.info_XYZ}</td>
+              <td>${row.cahaya}</td>
+              <td>${row.info_cahaya}</td>
+              <td>${row.time_stamp.split(' ')[0]}</td> <!-- Date part -->
+              <td>${row.time_stamp.split(' ')[1]}</td> <!-- Time part -->
+              <td>
+                <button onclick="editData(${row.id_sensor})">Edit</button>
+                <button onclick="deleteData(${row.id_sensor})">Delete</button>
+              </td>
+            `;
+            tableBody.appendChild(tr);
+          });
+        } else {
+          document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="text-center py-4">No data available for today.</td></tr>';
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="text-center py-4">Failed to fetch data.</td></tr>';
+      }
+    }
+
+    // Fungsi untuk menambah data
+    document.getElementById('addSensorForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const sensorData = {
+        sensor_X: document.getElementById('sensorX').value,
+        sensor_Y: document.getElementById('sensorY').value,
+        sensor_Z: document.getElementById('sensorZ').value,
+        info_XYZ: document.getElementById('infoXYZ').value,
+        cahaya: document.getElementById('cahaya').value,
+        info_cahaya: document.getElementById('infoCahaya').value,
+      };
+
+      try {
+        const response = await fetch('http://localhost:3000/api/sensor', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(sensorData)
+        });
+        const data = await response.json();
+        if (data.code === 201) {
+          alert('Data added successfully');
+          fetchData(); // Refresh table
+        } else {
+          alert('Failed to add data');
+        }
+      } catch (error) {
+        console.error('Error adding data:', error);
+        alert('Error adding data');
+      }
+    });
+
+    // Fungsi untuk mengedit data
+    function editData(id) {
+      alert('Edit data for ID: ' + id);
+      // Implement editing functionality here
+    }
+
+    // Fungsi untuk menghapus data
+    async function deleteData(id) {
+      const confirmDelete = confirm('Are you sure you want to delete this data?');
+      if (confirmDelete) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/sensor/${id}`, {
+            method: 'DELETE',
+          });
+          const data = await response.json();
+          if (data.code === 200) {
+            alert('Data deleted successfully');
+            fetchData(); // Refresh table
+          } else {
+            alert('Failed to delete data');
+          }
+        } catch (error) {
+          console.error('Error deleting data:', error);
+          alert('Error deleting data');
+        }
+      }
+    }
+
+    // Fetch data on page load
+    window.onload = fetchData;
+  </script>
+</body>
+</html>
