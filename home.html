@@ -12,12 +12,9 @@
   <!-- Navbar -->
   <nav class="navbar">
     <div class="container">
-      <a href="/modul4/frontend/home.php" class="brand">Smart Data Logger</a>
+      <a href="/modul4/frontend/home.html" class="brand">Smart Data Logger</a>
       <ul class="nav-links">
-        <li><a href="/modul4/frontend/home.php" class="nav-link home-link">Home</a></li>
-        <!-- <li><a href="/history" class="nav-link history-link">History</a></li> -->
-        <li>
-        </li>
+        <li><a href="/modul4/frontend/home.html" class="nav-link home-link">Home</a></li>
       </ul>
     </div>
   </nav>
@@ -27,19 +24,55 @@
       <h2 class="title">Data Monitoring Realtime</h2>
     </div>
 
-    <!-- Form untuk Menambah Data -->
+    <!-- Form untuk Menambah atau Mengedit Data -->
     <div class="form-container mb-6">
-      <h3 class="text-center">Tambah Data Sensor</h3>
+      <h3 class="text-center" id="formTitle">Tambah Data Sensor</h3>
       <form id="addSensorForm">
-        <input type="text" id="sensorX" placeholder="Sensor X" required>
-        <input type="text" id="sensorY" placeholder="Sensor Y" required>
-        <input type="text" id="sensorZ" placeholder="Sensor Z" required>
-        <input type="text" id="infoXYZ" placeholder="Info XYZ" required>
-        <input type="text" id="cahaya" placeholder="Cahaya" required>
-        <input type="text" id="infoCahaya" placeholder="Info Cahaya" required>
-        <button type="submit" class="btn">Tambah Data</button>
+        
+        <!-- Hidden field to store the sensor ID for editing -->
+        <input type="hidden" id="sensorId">
+        
+        <!-- Input for Sensor X -->
+        <div class="form-group">
+          <label for="sensorX">Sensor X</label>
+          <input type="text" id="sensorX" placeholder="Masukkan nilai Sensor X" required title="Masukkan nilai untuk Sensor X (misalnya, posisi dalam X-axis)">
+        </div>
+        
+        <!-- Input for Sensor Y -->
+        <div class="form-group">
+          <label for="sensorY">Sensor Y</label>
+          <input type="text" id="sensorY" placeholder="Masukkan nilai Sensor Y" required title="Masukkan nilai untuk Sensor Y (misalnya, posisi dalam Y-axis)">
+        </div>
+        
+        <!-- Input for Sensor Z -->
+        <div class="form-group">
+          <label for="sensorZ">Sensor Z</label>
+          <input type="text" id="sensorZ" placeholder="Masukkan nilai Sensor Z" required title="Masukkan nilai untuk Sensor Z (misalnya, posisi dalam Z-axis)">
+        </div>
+        
+        <!-- Input for Info XYZ -->
+        <div class="form-group">
+          <label for="infoXYZ">Info XYZ</label>
+          <input type="text" id="infoXYZ" placeholder="Masukkan informasi tambahan tentang XYZ" required title="Masukkan informasi tambahan terkait data sensor XYZ">
+        </div>
+        
+        <!-- Input for Cahaya -->
+        <div class="form-group">
+          <label for="cahaya">Cahaya</label>
+          <input type="text" id="cahaya" placeholder="Masukkan nilai cahaya" required title="Masukkan nilai intensitas cahaya yang diterima sensor">
+        </div>
+        
+        <!-- Input for Info Cahaya -->
+        <div class="form-group">
+          <label for="infoCahaya">Info Cahaya</label>
+          <input type="text" id="infoCahaya" placeholder="Masukkan informasi tentang cahaya" required title="Masukkan informasi tambahan terkait kondisi cahaya">
+        </div>
+        
+        <!-- Submit button -->
+        <button type="submit" class="btn" id="submitButton">Tambah Data</button>
       </form>
     </div>
+    
 
     <!-- Tabel untuk Data -->
     <div class="table-container overflow-x-auto mb-6">
@@ -71,109 +104,7 @@
     <p>&copy; 2024 Lorem Ipsum Company. All rights reserved.</p>
   </footer>
 
-  <script>
-    // Fungsi untuk fetch data
-    async function fetchData() {
-      try {
-        const response = await fetch('http://localhost:3000/api/sensor');
-        const data = await response.json();
-
-        if (data.code === 200 && Array.isArray(data.data) && data.data.length > 0) {
-          const tableBody = document.getElementById('tableBody');
-          tableBody.innerHTML = ''; // Clear existing rows
-
-          data.data.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${row.id_sensor}</td>
-              <td>${row.sensor_X}</td>
-              <td>${row.sensor_Y}</td>
-              <td>${row.sensor_Z}</td>
-              <td>${row.info_XYZ}</td>
-              <td>${row.cahaya}</td>
-              <td>${row.info_cahaya}</td>
-              <td>${row.time_stamp.split(' ')[0]}</td> <!-- Date part -->
-              <td>${row.time_stamp.split(' ')[1]}</td> <!-- Time part -->
-              <td>
-                <button onclick="editData(${row.id_sensor})">Edit</button>
-                <button onclick="deleteData(${row.id_sensor})">Delete</button>
-              </td>
-            `;
-            tableBody.appendChild(tr);
-          });
-        } else {
-          document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="text-center py-4">No data available for today.</td></tr>';
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" class="text-center py-4">Failed to fetch data.</td></tr>';
-      }
-    }
-
-    // Fungsi untuk menambah data
-    document.getElementById('addSensorForm').addEventListener('submit', async function(event) {
-      event.preventDefault();
-
-      const sensorData = {
-        sensor_X: document.getElementById('sensorX').value,
-        sensor_Y: document.getElementById('sensorY').value,
-        sensor_Z: document.getElementById('sensorZ').value,
-        info_XYZ: document.getElementById('infoXYZ').value,
-        cahaya: document.getElementById('cahaya').value,
-        info_cahaya: document.getElementById('infoCahaya').value,
-      };
-
-      try {
-        const response = await fetch('http://localhost:3000/api/sensor', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(sensorData)
-        });
-        const data = await response.json();
-        if (data.code === 201) {
-          alert('Data added successfully');
-          fetchData(); // Refresh table
-        } else {
-          alert('Failed to add data');
-        }
-      } catch (error) {
-        console.error('Error adding data:', error);
-        alert('Error adding data');
-      }
-    });
-
-    // Fungsi untuk mengedit data
-    function editData(id) {
-      alert('Edit data for ID: ' + id);
-      // Implement editing functionality here
-    }
-
-    // Fungsi untuk menghapus data
-    async function deleteData(id) {
-      const confirmDelete = confirm('Are you sure you want to delete this data?');
-      if (confirmDelete) {
-        try {
-          const response = await fetch(`http://localhost:3000/api/sensor/${id}`, {
-            method: 'DELETE',
-          });
-          const data = await response.json();
-          if (data.code === 200) {
-            alert('Data deleted successfully');
-            fetchData(); // Refresh table
-          } else {
-            alert('Failed to delete data');
-          }
-        } catch (error) {
-          console.error('Error deleting data:', error);
-          alert('Error deleting data');
-        }
-      }
-    }
-
-    // Fetch data on page load
-    window.onload = fetchData;
-  </script>
+  <!-- Link to the external script.js file -->
+  <script src="js/script.js"></script>
 </body>
 </html>
